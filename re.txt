@@ -1,0 +1,3 @@
+torch>=1.11.0
+onnxruntime==1.15.1
+piper-phonemize==1.1.0
