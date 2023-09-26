@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+# !pip install torch==1.11.0
+# !pip install onnxruntime==1.15.1
+# !pip install piper-phonemize==1.1.0
+
+
 import argparse
 import json
 import logging
@@ -6,10 +10,10 @@ import math
 import sys
 import time
 from pathlib import Path
-
+from enum import Enum
 import numpy as np
 import onnxruntime
-
+from typing import List
 from wavfile import write as write_wav
 
 
@@ -47,6 +51,11 @@ def phonemize(config, text: str) -> List[List[str]]:
         return phonemize_codepoints(text)
     raise ValueError(f'Unexpected phoneme type: {config["phoneme_type"]}')
 
+PAD = "_"  # padding (0)
+BOS = "^"  # beginning of sentence
+EOS = "$"  # end of sentence
+
+
 def phonemes_to_ids(config, phonemes: List[str]) -> List[int]:
     """Phonemes to ids."""
     id_map = config["phoneme_id_map"]
@@ -71,67 +80,60 @@ def main():
     noise_scale = 0.667
     length_scale = 1.0
 
-    output_dir = Path("/audio")
+    output_dir = Path("audio")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     sess_options = onnxruntime.SessionOptions()
     model = onnxruntime.InferenceSession("pretrained_vi.onnx", sess_options=sess_options)
     config = load_config("pretrained_vi.onnx")
 
-    for i, line in enumerate(sys.stdin):
-        print(line)
-        line = line.strip()
-        if not line:
-            continue
 
-        utt = json.loads(line)
-        utt_id = "1"
+    line = "Xin chào bạn"
+    line = line.strip()
+    
+    utt_id = "1"
 
+    phonemes_list = phonemize(config, line)
+    phoneme_ids = []
+    for phonemes in phonemes_list:
+      phoneme_ids.append(phonemes_to_ids(config, phonemes))
+    print(output_dir)
 
-        phoneme_ids = phonemes_to_ids(config, phonemes)
-        speaker_id = None
+    speaker_id = None
 
-        text = np.expand_dims(np.array(phoneme_ids, dtype=np.int64), 0)
-        text_lengths = np.array([text.shape[1]], dtype=np.int64)
-        scales = np.array(
-            [noise_scale, length_scale, noise_scale_w],
-            dtype=np.float32,
-        )
-        sid = None
+    text = np.expand_dims(np.array(phoneme_ids[0], dtype=np.int64), 0)
+    text_lengths = np.array([text.shape[1]], dtype=np.int64)
+    scales = np.array(
+        [noise_scale, length_scale, noise_scale_w],
+        dtype=np.float32,
+    )
+    sid = None
 
-        if speaker_id is not None:
-            sid = np.array([speaker_id], dtype=np.int64)
+    if speaker_id is not None:
+        sid = np.array([speaker_id], dtype=np.int64)
 
-        start_time = time.perf_counter()
-        audio = model.run(
-            None,
-            {
-                "input": text,
-                "input_lengths": text_lengths,
-                "scales": scales,
-                "sid": sid,
-            },
-        )[0].squeeze((0, 1))
-        # audio = denoise(audio, bias_spec, 10)
-        audio = audio_float_to_int16(audio.squeeze())
-        end_time = time.perf_counter()
+    start_time = time.perf_counter()
+    audio = model.run(
+        None,
+        {
+            "input": text,
+            "input_lengths": text_lengths,
+            "scales": scales,
+            "sid": sid,
+        },
+    )[0].squeeze((0, 1))
+    # audio = denoise(audio, bias_spec, 10)
+    audio = audio_float_to_int16(audio.squeeze())
+    end_time = time.perf_counter()
 
-        audio_duration_sec = audio.shape[-1] / sample_rate
-        infer_sec = end_time - start_time
-        real_time_factor = (
-            infer_sec / audio_duration_sec if audio_duration_sec > 0 else 0.0
-        )
+    audio_duration_sec = audio.shape[-1] / sample_rate
+    infer_sec = end_time - start_time
+    real_time_factor = (
+        infer_sec / audio_duration_sec if audio_duration_sec > 0 else 0.0
+    )
 
-        _LOGGER.debug(
-            "Real-time factor for %s: %0.2f (infer=%0.2f sec, audio=%0.2f sec)",
-            i + 1,
-            real_time_factor,
-            infer_sec,
-            audio_duration_sec,
-        )
-
-        output_path = output_dir / f"{utt_id}.wav"
-        write_wav(str(output_path), sample_rate, audio)
+    output_path = output_dir / f"{utt_id}.wav"
+    write_wav(str(output_path), sample_rate, audio)
 
 
 def denoise(
