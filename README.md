@@ -56,10 +56,27 @@ The result also seem like:
 }
 ```
 
-Author: Nguyen Thanh Phat - aka phatjk
+# Result
+Audio before finetuining voice (unmute to hear):
+
+
+https://github.com/phatjkk/vits-tts-vietnamese/assets/48487157/2a3f51b0-4d27-43a9-b5de-8925ddcc8a2b
+
+
+Audio AFTER finetuining voice (unmute to hear):
+
+
+https://github.com/phatjkk/vits-tts-vietnamese/assets/48487157/e953f2cc-979d-4fa2-96b2-96786345723d
+
+
+### Metrics and Accuracy: 
+Updating...
+
 
 # How do we preprocess data and fine-tuining?
 
 See **train_vits.ipynb** file in the repo or via this Google Colab:
 
 https://colab.research.google.com/drive/1UK6t_AQUw9YJ_RDFvXUJmWMu-oS23XQs?usp=sharing
+
+Author: Nguyen Thanh Phat - aka phatjk
