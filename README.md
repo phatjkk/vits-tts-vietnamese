@@ -56,6 +56,8 @@ The result also seem like:
 }
 ```
 
+Author: Nguyen Thanh Phat - aka phatjk
+
 # How do we preprocess data and fine-tuining?
 
 See **train_vits.ipynb** file in the repo or via this Google Colab:
