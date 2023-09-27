@@ -8,7 +8,7 @@ The server use ONNX model type to inference with lightweight and great performan
 
 # How to run this project?
 
-### With Docker (highly recommend):
+### With Docker (***highly recommend***):
 On your terminal, type this commands to build Docker Image:
 ```
 docker build  ./ -f .Dockerfile -t vits-tts-vi:v1.0
