@@ -22,6 +22,10 @@ While the Docker Image runing, now you make request to use TTS task via this API
 http://localhost:5004/?text=Xin chào bạn
 ```
 The result seem like:
+<p align="center">
+  <img  src="https://raw.githubusercontent.com/phatjkk/vits-tts-vietnamese/main/resources/demo_api.PNG">
+</p>
+
 ```json
 {
     "hash": "5f560869a0498096ddc31f21ea474418d6e2ab80",
