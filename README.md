@@ -69,9 +69,11 @@ Audio AFTER finetuining voice (unmute to hear):
 https://github.com/phatjkk/vits-tts-vietnamese/assets/48487157/e953f2cc-979d-4fa2-96b2-96786345723d
 
 
-### Metrics and Accuracy: 
-Updating...
-
+### Evaluation: 
+In TTS tasks, output spectrogram for a given text can be represented in many different ways.
+So, loss function like MSE and MAE just used for encourage the model to minimize the difference between the predicted and target spectrograms.
+The right way to Evaluating TTS model is use MOS(mean opinion scores) BUT it is a subjective scoring system and we need human resource to do it.
+Reference: https://huggingface.co/learn/audio-course/chapter6/evaluation
 
 # How do we preprocess data and fine-tuining?
 
