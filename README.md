@@ -70,6 +70,16 @@ https://github.com/phatjkk/vits-tts-vietnamese/assets/48487157/e953f2cc-979d-4fa
 
 
 ### Evaluation: 
+```
+### Metrics in test data BEFORE finetuing:
+Mean Square Error: (lower is better) 0.044785238588228825
+Root Mean Square Error (lower is better): 2.0110066944004297
+=============================================
+### Metrics in test data AFTER finetuing:
+Mean Square Error: (lower is better) 0.043612250527366996
+Root Mean Square Error (lower is better): 1.97773962268741
+```
+
 In TTS tasks, output spectrogram for a given text can be represented in many different ways.
 So, loss function like MSE and MAE just used for encourage the model to minimize the difference between the predicted and target spectrograms.
 The right way to Evaluating TTS model is use MOS(mean opinion scores) BUT it is a subjective scoring system and we need human resource to do it.
