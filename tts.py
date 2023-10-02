@@ -74,14 +74,13 @@ def TTS(text:str,modelName:str):
     sample_rate = 22050
     noise_scale_w = 0.8
     noise_scale = 0.667
-    length_scale = 1.0
+    length_scale = 1.5
     output_dir = os.getcwd()+"/audio/"
     sess_options = onnxruntime.SessionOptions()
     model = onnxruntime.InferenceSession(modelName, sess_options=sess_options)
     config = load_config(modelName)
 
     text = text.strip()
-    
     hashText = hashlib.sha1(text.encode('utf-8')).hexdigest()
 
     phonemes_list = phonemize(config, text)
@@ -90,8 +89,10 @@ def TTS(text:str,modelName:str):
       phoneme_ids.append(phonemes_to_ids(config, phonemes))
 
     speaker_id = None
-
-    text = np.expand_dims(np.array(phoneme_ids[0], dtype=np.int64), 0)
+    phoneme_ids_flatten = []
+    for i in phoneme_ids:
+        phoneme_ids_flatten += i + [0,0,0]
+    text = np.expand_dims(np.array(phoneme_ids_flatten, dtype=np.int64), 0)
     text_lengths = np.array([text.shape[1]], dtype=np.int64)
     scales = np.array(
         [noise_scale, length_scale, noise_scale_w],
