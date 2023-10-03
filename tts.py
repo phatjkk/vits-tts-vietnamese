@@ -69,19 +69,25 @@ def load_config(model):
         config = json.load(file)
     return config
 
-def TTS(text:str,modelName:str):
+def TTS(text:str,speed:str,modelName:str,hashText:str):
     """Main entry point"""
+    speedVal={"verySlow":1.5,
+    "slow":1.2,
+    "normal":1,
+    "fast":0.6,
+    "veryFast":0.4}
     sample_rate = 22050
     noise_scale_w = 0.8
     noise_scale = 0.667
-    length_scale = 1.5
+    speed = speed.strip()
+    length_scale = float(speedVal[speed.strip()])
+    print(length_scale)
     output_dir = os.getcwd()+"/audio/"
     sess_options = onnxruntime.SessionOptions()
     model = onnxruntime.InferenceSession(modelName, sess_options=sess_options)
     config = load_config(modelName)
 
     text = text.strip()
-    hashText = hashlib.sha1(text.encode('utf-8')).hexdigest()
 
     phonemes_list = phonemize(config, text)
     phoneme_ids = []
