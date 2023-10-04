@@ -41,9 +41,11 @@ Or you can use the Web UI via this URL:
 ```
 http://localhost:5004/
 ```
+The repo of this React Front-end: [vits-tts-webapp](https://github.com/phatjkk/vits-tts-webapp)
 <p align="center">
   <img  src="https://raw.githubusercontent.com/phatjkk/vits-tts-vietnamese/main/resources/web_ui.PNG">
 </p>
+
 ### With normal way:
 In the repo folder, type in Terminal:
 ```
