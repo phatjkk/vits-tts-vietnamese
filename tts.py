@@ -14,11 +14,11 @@ from typing import List
 from wavfile import write as write_wav
 from piper_phonemize import phonemize_codepoints, phonemize_espeak, tashkeel_run
 
-SPEED_VALUES = {"verySlow":1.5,
+SPEED_VALUES = {"very_slow":1.5,
                 "slow":1.2,
                 "normal":1,
                 "fast":0.6,
-                "veryFast":0.4}
+                "very_fast":0.4}
 SAMPLE_RATE = 22050
 NOISE_SCALE_W = 0.8
 NOISE_SCALE = 0.667
