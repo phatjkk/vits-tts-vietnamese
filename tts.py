@@ -14,11 +14,73 @@ from typing import List
 from wavfile import write as write_wav
 from piper_phonemize import phonemize_codepoints, phonemize_espeak, tashkeel_run
 
-# import torch
+SPEED_VALUES = {"verySlow":1.5,
+                "slow":1.2,
+                "normal":1,
+                "fast":0.6,
+                "veryFast":0.4}
+SAMPLE_RATE = 22050
+NOISE_SCALE_W = 0.8
+NOISE_SCALE = 0.667
+PAD = "_"  # padding (0)
+BOS = "^"  # beginning of sentence
+EOS = "$"  # end of sentence
 
 
-# def to_gpu(x: torch.Tensor) -> torch.Tensor:
-#     return x.contiguous().cuda(non_blocking=True)
+def text_to_speech(text:str,speed:str,model_name:str,hash_of_text:str):
+    """Main entry point"""
+
+    speed = speed.strip()
+    length_scale = float(SPEED_VALUES[speed])
+
+    output_dir = os.getcwd()+"/audio/"
+    sess_options = onnxruntime.SessionOptions()
+    model = onnxruntime.InferenceSession(model_name, sess_options=sess_options)
+    config = load_config(model_name)
+    text = text.strip()
+    phonemes_list = phonemize(config, text)
+    phoneme_ids = []
+    for phonemes in phonemes_list:
+      phoneme_ids.append(phonemes_to_ids(config, phonemes))
+
+    speaker_id = None
+    phoneme_ids_flatten = []
+    for i in phoneme_ids:
+        phoneme_ids_flatten += i + [0,0,0]
+    text = np.expand_dims(np.array(phoneme_ids_flatten, dtype=np.int64), 0)
+    text_lengths = np.array([text.shape[1]], dtype=np.int64)
+    scales = np.array(
+        [NOISE_SCALE, length_scale, NOISE_SCALE_W],
+        dtype=np.float32,
+    )
+    sid = None
+
+    if speaker_id is not None:
+        sid = np.array([speaker_id], dtype=np.int64)
+
+    start_time = time.perf_counter()
+    audio = model.run(
+        None,
+        {
+            "input": text,
+            "input_lengths": text_lengths,
+            "scales": scales,
+            "sid": sid,
+        },
+    )[0].squeeze((0, 1))
+    # audio = denoise(audio, bias_spec, 10)
+    audio = audio_float_to_int16(audio.squeeze())
+    end_time = time.perf_counter()
+
+    audio_duration_sec = audio.shape[-1] / SAMPLE_RATE
+    infer_sec = end_time - start_time
+    # real_time_factor = (
+    #     infer_sec / audio_duration_sec if audio_duration_sec > 0 else 0.0
+    # )
+    output_path = output_dir + f"/{hash_of_text}.wav"
+    write_wav(str(output_path), SAMPLE_RATE, audio)
+    return output_path
+
 
 
 def audio_float_to_int16(
@@ -46,10 +108,6 @@ def phonemize(config, text: str) -> List[List[str]]:
         return phonemize_codepoints(text)
     raise ValueError(f'Unexpected phoneme type: {config["phoneme_type"]}')
 
-PAD = "_"  # padding (0)
-BOS = "^"  # beginning of sentence
-EOS = "$"  # end of sentence
-
 
 def phonemes_to_ids(config, phonemes: List[str]) -> List[int]:
     """Phonemes to ids."""
@@ -68,70 +126,6 @@ def load_config(model):
     with open(f"{model}.json", "r") as file:
         config = json.load(file)
     return config
-
-def TTS(text:str,speed:str,modelName:str,hashText:str):
-    """Main entry point"""
-    speedVal={"verySlow":1.5,
-    "slow":1.2,
-    "normal":1,
-    "fast":0.6,
-    "veryFast":0.4}
-    sample_rate = 22050
-    noise_scale_w = 0.8
-    noise_scale = 0.667
-    speed = speed.strip()
-    length_scale = float(speedVal[speed.strip()])
-    print(length_scale)
-    output_dir = os.getcwd()+"/audio/"
-    sess_options = onnxruntime.SessionOptions()
-    model = onnxruntime.InferenceSession(modelName, sess_options=sess_options)
-    config = load_config(modelName)
-
-    text = text.strip()
-
-    phonemes_list = phonemize(config, text)
-    phoneme_ids = []
-    for phonemes in phonemes_list:
-      phoneme_ids.append(phonemes_to_ids(config, phonemes))
-
-    speaker_id = None
-    phoneme_ids_flatten = []
-    for i in phoneme_ids:
-        phoneme_ids_flatten += i + [0,0,0]
-    text = np.expand_dims(np.array(phoneme_ids_flatten, dtype=np.int64), 0)
-    text_lengths = np.array([text.shape[1]], dtype=np.int64)
-    scales = np.array(
-        [noise_scale, length_scale, noise_scale_w],
-        dtype=np.float32,
-    )
-    sid = None
-
-    if speaker_id is not None:
-        sid = np.array([speaker_id], dtype=np.int64)
-
-    start_time = time.perf_counter()
-    audio = model.run(
-        None,
-        {
-            "input": text,
-            "input_lengths": text_lengths,
-            "scales": scales,
-            "sid": sid,
-        },
-    )[0].squeeze((0, 1))
-    # audio = denoise(audio, bias_spec, 10)
-    audio = audio_float_to_int16(audio.squeeze())
-    end_time = time.perf_counter()
-
-    audio_duration_sec = audio.shape[-1] / sample_rate
-    infer_sec = end_time - start_time
-    # real_time_factor = (
-    #     infer_sec / audio_duration_sec if audio_duration_sec > 0 else 0.0
-    # )
-    output_path = output_dir + f"/{hashText}.wav"
-    write_wav(str(output_path), sample_rate, audio)
-    return output_path
-
 
 def denoise(
     audio: np.ndarray, bias_spec: np.ndarray, denoiser_strength: float

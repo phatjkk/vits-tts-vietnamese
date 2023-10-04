@@ -2,12 +2,10 @@
 import os
 import tornado.ioloop
 import tornado.web
-from tts import TTS 
+from tts import text_to_speech 
 import hashlib
 class GetHandler(tornado.web.RequestHandler):
     def get(self):
-
-
         response = self.get_arguments("text")
         if len(response) == 0:
             self.set_status(400)
@@ -28,8 +26,8 @@ class GetHandler(tornado.web.RequestHandler):
                 })
         else:
             # create new file 
-            modelName = "pretrained_vi.onnx"
-            audio_path = TTS(text,speed,modelName,text_hash)
+            model_name = "pretrained_vi.onnx"
+            audio_path = text_to_speech(text,speed,model_name,text_hash)
             self.write({
                 "hash":text_hash,
                 "text":self.get_argument("text"),
