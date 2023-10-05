@@ -37,6 +37,7 @@ The result seems like this:
     "audio_url": "http://localhost:5004/audio/e6bc1768c82ae63ed8ee61ca2349efa4ef9f166e.wav"
 }
 ```
+The speed has 5 options: *normal*, *fast*, *low*, *very_fast*, *very_slow*
 Or you can use the Web UI via this URL:
 ```
 http://localhost:5004/
