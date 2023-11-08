@@ -5,6 +5,8 @@ We use Piper library to finetuning VITS for TTS tasks with different voice in Vi
 We also built a Tornado server to deploy TTS model on microservice with Docker. 
 The server uses ONNX model type to infer lightweight and excellent performance. 
 
+Read Project Docs: [Paper](https://github.com/phatjkk/vits-tts-vietnamese/blob/main/TTS_VITS_Docs_NguyenThanhPhat.pdf)
+
 <p align="center">
   <img  src="https://raw.githubusercontent.com/phatjkk/vits-tts-vietnamese/main/resources/web_ui.PNG">
 </p>
