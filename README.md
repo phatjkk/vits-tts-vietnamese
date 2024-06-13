@@ -104,10 +104,13 @@ So, loss functions like MSE and MAE are just used to encourage the model to mini
 The right way to Evaluate TTS model is to use MOS(mean opinion scores) BUT it is a subjective scoring system and we need human resources to do it.
 Reference: https://huggingface.co/learn/audio-course/chapter6/evaluation
 
+
 # How do we preprocess data and fine-tuning?
 
 See **train_vits.ipynb** file in the repo or via this Google Colab:
 
 https://colab.research.google.com/drive/1UK6t_AQUw9YJ_RDFvXUJmWMu-oS23XQs?usp=sharing
+
+ProtonX New: https://protonx.io/news/hoc-vien-protonx-xay-dung-mo-hinh-chuyen-van-ban-thanh-giong-noi-tieng-viet-1698233526932
 
 Author: Nguyen Thanh Phat - aka phatjk
