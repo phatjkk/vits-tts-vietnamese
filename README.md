@@ -26,8 +26,41 @@ docker run -d -p 5004:8888 vits-tts-vi:v1.0
 ```
 While the Docker Image was running, you now make a request to use the TTS task via this API on your browser.
 ```
-http://localhost:5004/?text=Xin chào bạn&speed=normal
+http://localhost:5004/tts?text=Xin chào bạn&speed=normal
 ```
+### Text-to-Speech API
+```
+http://localhost:{port}/tts?text=<your_text>&speed=<speed_option>
+```
+
+Parameters:
+- `text`: Your text in UTF-8 encoding (supports Vietnamese)
+- `speed`: Speed of speech generation
+  - Available options:
+    - `normal`: Standard speaking rate
+    - `fast`: Increased speaking rate
+    - `slow`: Decreased speaking rate
+    - `very_fast`: Maximum speaking rate
+
+Response Format:
+```json
+{
+    "hash": "<unique_identifier>",
+    "text": "<input_text>",
+    "speed": "<selected_speed>",
+    "audio_url": "http://localhost:{port}/audio/<hash>.wav"
+}
+```
+
+### Audio File Access
+```
+http://localhost:{port}/audio/<hash>.wav
+```
+- Returns WAV audio file
+- Content-Type: audio/x-wav
+
+
+
 The result seems like this:
 <p align="center">
   <img  src="https://raw.githubusercontent.com/phatjkk/vits-tts-vietnamese/main/resources/demo_api.PNG">
@@ -41,7 +74,11 @@ The result seems like this:
     "audio_url": "http://localhost:5004/audio/e6bc1768c82ae63ed8ee61ca2349efa4ef9f166e.wav"
 }
 ```
-The speed has 5 options: *normal*, *fast*, *low*, *very_fast*, *very_slow*
+The speed has 5 options:
+- ✅ `normal`
+- ✅ `fast`
+- ✅ `slow`
+- ✅ `very_fast`
 
 Or you can use the Web UI via this URL:
 ```
@@ -63,7 +100,7 @@ python server.py
 ```
 Now, you can access the TTS API with port 8888:
 ```
-http://localhost:8888/?text=Xin chào bạn&speed=normal
+http://localhost:8888/tts?text=Xin chào bạn&speed=normal
 ```
 The result also seems like this:
 ```json
