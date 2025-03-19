@@ -4,6 +4,8 @@ from validate import validate_query_params
 from tts import text_to_speech 
 import hashlib
 import os
+import json
+
 # Define a JSON schema for your query parameters
 query_param_schema = {
     "type": "object",
@@ -28,6 +30,30 @@ class MyHandler(tornado.web.RequestHandler):
         result,file_name = handle_tts_request(text,speed)
         result["audio_url"] =  current_url+"/audio/"+file_name
         self.write(result)
+        
+    def post(self):
+        try:
+            data = json.loads(self.request.body.decode('utf-8'))
+            text: str = data.get('text')
+            speed: str = data.get('speed')
+
+            if not text or not speed:
+                self.set_status(400)  # Bad Request
+                self.write(json.dumps({"error": "Missing 'text' or 'speed' in request body."}))
+                return
+
+            current_url: str = '{}://{}'.format(self.request.protocol, self.request.host)
+            result, file_name = handle_tts_request(text, speed)
+            result["audio_url"] = current_url + "/audio/" + file_name
+            self.write(json.dumps(result))
+
+        except json.JSONDecodeError:
+            self.set_status(400)  # Bad Request
+            self.write(json.dumps({"error": "Invalid JSON in request body."}))
+        except Exception as e:
+            self.set_status(500)  # Internal Server Error
+            self.write(json.dumps({"error": str(e)}))
+
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")
