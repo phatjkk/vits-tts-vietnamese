@@ -1,4 +1,4 @@
 tornado==6.3.3
-onnxruntime==1.15.1
+onnxruntime==1.21.0
 piper-phonemize==1.1.0
 jsonschema==4.19.1
