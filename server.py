@@ -5,6 +5,8 @@ from tts import text_to_speech
 import hashlib
 import os
 import json
+from pydub import AudioSegment  # Ensure this is at the top of your file
+
 
 # Define a JSON schema for your query parameters
 query_param_schema = {
@@ -30,22 +32,39 @@ class MyHandler(tornado.web.RequestHandler):
         result,file_name = handle_tts_request(text,speed)
         result["audio_url"] =  current_url+"/audio/"+file_name
         self.write(result)
-        
+
     def post(self):
         try:
             data = json.loads(self.request.body.decode('utf-8'))
-            text: str = data.get('text')
+            texts: list = data.get('texts')
             speed: str = data.get('speed')
+            pause: int = data.get('pause', 500)
 
-            if not text or not speed:
+            if not texts or not isinstance(texts, list) or not speed:
                 self.set_status(400)  # Bad Request
-                self.write(json.dumps({"error": "Missing 'text' or 'speed' in request body."}))
+                self.write(json.dumps({"error": "Missing 'texts' (array of strings) or 'speed' in request body."}))
                 return
 
+            results = []
+            audio_files = []  # Keep track of individual audio file paths
             current_url: str = '{}://{}'.format(self.request.protocol, self.request.host)
-            result, file_name = handle_tts_request(text, speed)
-            result["audio_url"] = current_url + "/audio/" + file_name
-            self.write(json.dumps(result))
+            for text in texts:
+                result, file_name = handle_tts_request(text, speed)
+                result["audio_url"] = current_url + "/audio/" + file_name
+                results.append(result)
+                # Log each generated audio file
+                audio_files.append(file_name)  # Track audio file for combining
+                print(f"Generated audio file: {file_name}")
+
+            audio_dir = os.getcwd() + "/audio"
+            combined_audio_file_name = combine_audio_files(audio_files, audio_dir, pause=pause)
+
+            # Add the combined audio file to the response
+            results.append({
+                "combined_audio_url": f"{current_url}/audio/{combined_audio_file_name}"
+            })
+
+            self.write(json.dumps(results))
 
         except json.JSONDecodeError:
             self.set_status(400)  # Bad Request
@@ -74,7 +93,6 @@ def handle_tts_request(text,speed):
     if os.path.isfile(file_path):
         return ({
             "hash":text_hash,
-            "text":text,
             "speed":speed,
             },file_name)
     else:
@@ -83,10 +101,32 @@ def handle_tts_request(text,speed):
         audio_path = text_to_speech(text,speed,model_name,text_hash)
         return ({
             "hash":text_hash,
-            "text":text,
             "speed":speed,
             },file_name)
-    
+
+def combine_audio_files(audio_files: list, output_dir: str, pause: int = 500) -> str:
+    combined_audio = None
+    hash_object = hashlib.sha1("".join(audio_files).encode('utf-8'))
+    combined_audio_file_name = f"{hash_object.hexdigest()}.wav"
+    output_file = f"{output_dir}/{combined_audio_file_name}"
+    pause = AudioSegment.silent(pause)  # duration is in milliseconds
+
+    if os.path.isfile(output_file):  # Return existing file if already combined
+        return combined_audio_file_name
+
+    for audio_path in audio_files:
+        audio = AudioSegment.from_file(f"{output_dir}/{audio_path}")
+
+        if combined_audio is None:  # First audio file
+            combined_audio = audio
+        else:  # Append subsequent audio files
+            combined_audio = combined_audio + pause + audio
+
+    # Export the combined audio to the output file
+    combined_audio.export(output_file, format="wav")
+    return combined_audio_file_name
+
+
 if __name__ == "__main__":
     app = make_app()
     app.listen(8888)
